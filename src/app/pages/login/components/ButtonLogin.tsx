@@ -1,5 +1,3 @@
-
-
 interface IButtonLoginProps {
   onClick: () => void;
   type?: "button" | "submit" | "reset";
