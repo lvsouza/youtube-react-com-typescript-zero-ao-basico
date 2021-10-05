@@ -1,28 +1,73 @@
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useState } from 'react';
 
-import { useUsuarioLogado } from '../../shared/hooks';
+
+interface ITarefa {
+  id: number;
+  title: string;
+  isCompleted: boolean;
+}
 
 export const Dashboard = () => {
-  const counterRef = useRef(0);
+  const [lista, setLista] = useState<ITarefa[]>([]);
 
-  const { nomeDoUsuario, logout } = useUsuarioLogado();
+  const handleInputKeyDown: React.KeyboardEventHandler<HTMLInputElement> = useCallback((e) => {
+    if (e.key === 'Enter') {
+      if (e.currentTarget.value.trim().length === 0) return;
 
+      const value = e.currentTarget.value;
+
+      e.currentTarget.value = '';
+
+      setLista((oldLista) => {
+        if (oldLista.some((listItem) => listItem.title === value)) return oldLista;
+
+        return [
+          ...oldLista,
+          {
+            title: value,
+            isCompleted: false,
+            id: oldLista.length,
+          }
+        ];
+      });
+    }
+  }, []);
 
   return (
     <div>
-      <p>Dashboard</p>
+      <p>Lista</p>
 
-      <p>{nomeDoUsuario}</p>
+      <input onKeyDown={handleInputKeyDown} />
 
-      <p>Contador: {counterRef.current}</p>
+      <p>{lista.filter((listItem) => listItem.isCompleted).length}</p>
 
-      <button onClick={() => counterRef.current++}>Somar</button>
-      <button onClick={() => console.log(counterRef.current)}>Log</button>
+      <ul>
+        {lista.map((listItem, index) => {
+          return <li key={listItem.id}>
+            <input
+              type="checkbox"
+              checked={listItem.isCompleted}
+              onChange={() => {
+                setLista(oldLista => {
+                  return oldLista.map(oldListItem => {
+                    const newIsCompleted = oldListItem.title === listItem.title
+                      ? !oldListItem.isCompleted
+                      : oldListItem.isCompleted;
 
-      <button onClick={logout}>Logout</button>
+                    return {
+                      ...oldListItem,
+                      isCompleted: newIsCompleted,
+                    };
+                  });
+                });
+              }}
+            />
 
-      <Link to="/entrar">Login</Link>
+            {listItem.title}
+          </li>;
+        })}
+      </ul>
+
     </div>
   );
 }
